@@ -152,4 +152,8 @@ public class FeedbackService {
             System.out.println("Failed to update order status.");
         }
     }
+
+    public void closeConnection() {
+        feedbackRepo.closeConnection();
+    }
 }

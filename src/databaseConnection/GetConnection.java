@@ -25,5 +25,14 @@ public class GetConnection {
         }
         return con;
     }
+    public static void closeConnection(){
+        try {
+            if (con != null && !con.isClosed()) {
+                con.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

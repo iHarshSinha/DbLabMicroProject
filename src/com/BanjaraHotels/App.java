@@ -22,6 +22,7 @@ public class App {
                 commandForUser();
             }
         }
+        
     }
 
 
@@ -36,7 +37,7 @@ public class App {
 
 
 
-    
+
 
 
     private static void commandForUser() throws SQLException {
@@ -120,7 +121,11 @@ public class App {
             String input = App.scanner.nextLine().trim();
 
             if (input.equalsIgnoreCase("exit")) {
-                System.out.println("Goodbye from Banjara Hotels Feedback Desk!");
+                try (App.scanner) {
+                    System.out.println("Goodbye from Banjara Hotels Feedback Desk!");
+                    // Close the scanner to prevent resource leak
+                }
+                feedbackService.closeConnection(); // Close the database connection
                 exit(0);
             }
             else if (input.equalsIgnoreCase("view top")) {
