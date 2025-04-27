@@ -42,7 +42,7 @@ public class App {
             System.out.println("1. add feedback");
             System.out.println("2. view responses");
             System.out.println("3. logout");
-            System.out.print(">>> ");
+            System.out.print("Enter Command ");
 
             String command = App.scanner.nextLine().trim().toLowerCase();
 
@@ -114,12 +114,10 @@ public class App {
 
 
     private static void login() {
-        System.out.println("=======================================");
         System.out.println("  Welcome to Banjara Hotels Feedback Management System");
         System.out.println("  Enter commands listed below");
         System.out.println("  Type 'exit' to close the application");
         System.out.println("  Type 'view top' to view top rated items");
-        System.out.println("=======================================\n");
         while (currentUser == 0) {
             System.out.print(
                     "Enter your User ID to login (or type 'exit' to quit or type 'view top' to view top rated items): ");
@@ -208,7 +206,7 @@ public class App {
             System.out.println("2. add response");
             System.out.println("3. change order status");
             System.out.println("4. logout");
-            System.out.print(">>> ");
+            System.out.print("Enter Command ");
 
             String command = App.scanner.nextLine().trim().toLowerCase();
 
