@@ -10,7 +10,16 @@ import java.util.Properties;
 
 public class GetConnection {
     private static Connection con= null;
+
+
+
+
     private static final String PROPERTIES_FILE="db.properties";
+
+
+
+
+
 
     public static Connection connectWithDatabase() throws SQLException, IOException{
         if(con==null || con.isClosed()){
@@ -25,6 +34,14 @@ public class GetConnection {
         }
         return con;
     }
+
+
+
+
+
+
+
+    
     public static void closeConnection() throws SQLException{
         if(con!=null && !con.isClosed()){
             con.close();

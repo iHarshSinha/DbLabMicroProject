@@ -4,40 +4,51 @@ import com.BanjaraHotels.utilities.SendEmail;
 import databaseConnection.GetConnection;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FeedbackRepo {
+
+
+
     private final Connection connection;
+
+
+
+
 
     public FeedbackRepo() throws SQLException, IOException {
         this.connection = GetConnection.connectWithDatabase();
     }
 
+
+
+
+
     public List<String[]> getFeedbackWithUserAndOrder(boolean sorting, boolean asc, int filterRating)
             throws SQLException {
+        // System.out.println("function called");
+        // completed reviewing
         List<String[]> feedbackList = new ArrayList<>();
 
-        // Base query
-        StringBuilder queryBuilder = new StringBuilder("""
-                    SELECT f.FeedbackId, u.Username, f.OrderId, f.Rating, f.Comment
-                    FROM Feedback f
-                    JOIN Orders o ON f.OrderId = o.OrderId
-                    JOIN Users u ON o.UserId = u.UserId
-                    WHERE f.Rating >= ?
-                """);
+        String query = """
+                    select f.FeedbackId, u.Username, f.OrderId, f.Rating, f.Comment
+                    from Feedback f
+                    inner join Orders o ON f.OrderId = o.OrderId
+                    inner join Users u ON o.UserId = u.UserId
+                    where f.Rating >= ?
+                """;
+        
 
-        // Sorting condition
+        // only if sorting is true we will add this in our string.
         if (sorting) {
-            queryBuilder.append(" ORDER BY f.Rating ");
-            queryBuilder.append(asc ? "ASC" : "DESC");
+            query += " order by f.Rating " + (asc ? "asc" : "desc");
         }
 
-        String query = queryBuilder.toString();
-
-        try (var pstmt = this.connection.prepareStatement(query)) {
+        try (PreparedStatement pstmt = this.connection.prepareStatement(query)) {
             pstmt.setInt(1, filterRating);
             ResultSet rs = pstmt.executeQuery();
 
@@ -56,77 +67,113 @@ public class FeedbackRepo {
     }
 
 
+
+
+
+
+
+
+
     public boolean canAddFeedback(int orderId) throws SQLException {
+        // completed reviewing
+        System.out.println("function called for checking feedback");
         String query = """
-            SELECT COUNT(*) FROM Orders
-            WHERE OrderId = ? AND Status = 'complete'
-        """;
-    
-        try (var stmt = connection.prepareStatement(query)) {
+                    select count(*) from Orders
+                    where OrderId = ? AND Status = 'complete'
+                """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, orderId);
             ResultSet rs = stmt.executeQuery();
-    
+
             if (rs.next()) {
                 return rs.getInt(1) > 0;
             }
         }
-    
+
         return false;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     public void addFeedback(int orderId, int rating, String comment) throws SQLException {
+        // completed reviewing
         String insertQuery = """
-            INSERT INTO Feedback (OrderId, Rating, Comment)
-            VALUES (?, ?, ?)
-        """;
-    
-        try (var stmt = connection.prepareStatement(insertQuery)) {
+                    insert into Feedback (OrderId, Rating, Comment)
+                    VALUES (?, ?, ?)
+                """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(insertQuery)) {
             stmt.setInt(1, orderId);
             stmt.setInt(2, rating);
-    
+
             if (comment == null || comment.trim().isEmpty()) {
                 stmt.setNull(3, java.sql.Types.VARCHAR);
             } else {
                 stmt.setString(3, comment);
             }
-    
+
             stmt.executeUpdate();
         }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public void updateItemRatingsAfterFeedback(int orderId, int newRating) throws SQLException {
-        // Step 1: Get all item IDs from OrderItems for the given order
-        String getItemsQuery = "SELECT ItemId FROM OrderItems WHERE OrderId = ?";
-    
-        try (var getItemsStmt = connection.prepareStatement(getItemsQuery)) {
+        // completed reviewing
+        String getItemsQuery = "select ItemId from OrderItems where OrderId = ?";
+
+        try (PreparedStatement getItemsStmt = connection.prepareStatement(getItemsQuery)) {
             getItemsStmt.setInt(1, orderId);
             ResultSet rs = getItemsStmt.executeQuery();
-    
+
             while (rs.next()) {
                 int itemId = rs.getInt("ItemId");
-    
-                // Step 2: Get current review count and avg rating
-                String selectItem = "SELECT ReviewCount, AverageRating FROM Items WHERE ItemId = ?";
-                try (var selectStmt = connection.prepareStatement(selectItem)) {
+
+                String selectItem = "select ReviewCount, AverageRating FROM Items where ItemId = ?";
+                try (PreparedStatement selectStmt = connection.prepareStatement(selectItem)) {
                     selectStmt.setInt(1, itemId);
                     ResultSet itemRs = selectStmt.executeQuery();
-    
+
                     if (itemRs.next()) {
                         int oldCount = itemRs.getInt("ReviewCount");
                         double oldAvg = itemRs.getDouble("AverageRating");
-    
-                        // Step 3: Compute new average
+
+                        
                         int newCount = oldCount + 1;
                         double newAvg = ((oldAvg * oldCount) + newRating) / newCount;
-    
-                        // Step 4: Update item
-                        String updateQuery = "UPDATE Items SET ReviewCount = ?, AverageRating = ? WHERE ItemId = ?";
-                        try (var updateStmt = connection.prepareStatement(updateQuery)) {
+
+                        String updateQuery = "update Items SET ReviewCount = ?, AverageRating = ? where ItemId = ?";
+                        try (PreparedStatement updateStmt = connection.prepareStatement(updateQuery)) {
                             updateStmt.setInt(1, newCount);
                             updateStmt.setDouble(2, newAvg);
                             updateStmt.setInt(3, itemId);
                             updateStmt.executeUpdate();
-                            connection.commit(); // Commit the transaction
+                            connection.commit(); 
                         }
                     }
                 }
@@ -135,24 +182,25 @@ public class FeedbackRepo {
     }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     public boolean addResponse(int feedbackId, String responseText) throws SQLException {
-        // Step 1: Check if feedback exists
-        String checkQuery = "SELECT COUNT(*) FROM Feedback WHERE FeedbackId = ?";
-        try (var checkStmt = connection.prepareStatement(checkQuery)) {
-            checkStmt.setInt(1, feedbackId);
-            try (var rs = checkStmt.executeQuery()) {
-                if (rs.next() && rs.getInt(1) == 0) {
-                    // Feedback does not exist
-                    return false;
-                }
-            }
-        }
-    
-        // Step 2: Insert the response
+        // completed reviewing
         String insertQuery = """
-            INSERT INTO Response (FeedbackId, ResponseText)
-            VALUES (?, ?)
-        """;
+                    insert into Response (FeedbackId, ResponseText)
+                    values (?, ?)
+                """;
         try (var stmt = connection.prepareStatement(insertQuery)) {
             stmt.setInt(1, feedbackId);
             stmt.setString(2, responseText);
@@ -163,18 +211,35 @@ public class FeedbackRepo {
     }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public List<String[]> getResponsesForUser(int userId) throws SQLException {
+        // completed reviewing
         List<String[]> responseList = new ArrayList<>();
-    
+
         String query = """
-            SELECT r.ResponseText, f.FeedbackId, f.OrderId, f.Comment, f.Rating
-            FROM Response r
-            JOIN Feedback f ON r.FeedbackId = f.FeedbackId
-            JOIN Orders o ON f.OrderId = o.OrderId
-            WHERE o.UserId = ?
-        """;
-    
-        try (var stmt = connection.prepareStatement(query)) {
+                    select r.ResponseText, f.FeedbackId, f.OrderId, f.Comment, f.Rating
+                    from Response r
+                    join Feedback f ON r.FeedbackId = f.FeedbackId
+                    join Orders o ON f.OrderId = o.OrderId
+                    where o.UserId = ?
+                """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -188,23 +253,44 @@ public class FeedbackRepo {
                 }
             }
         }
-    
+
         return responseList;
     }
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public List<String[]> getTopRatedItems() throws SQLException {
+
+        // completed reviewing
         List<String[]> topRatedItems = new ArrayList<>();
-    
+
         String query = """
-            SELECT i.Name, i.AverageRating, i.ReviewCount, i.ItemId
-            FROM Items i
-            ORDER BY i.AverageRating DESC
-            LIMIT 5
-        """;
-    
-        try (var stmt = connection.prepareStatement(query)) {
+                    select i.Name, i.AverageRating, i.ReviewCount, i.ItemId
+                    from Items i
+                    order by i.AverageRating desc
+                    limit 5
+                """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     String[] row = new String[4];
@@ -216,23 +302,44 @@ public class FeedbackRepo {
                 }
             }
         }
-    
+
         return topRatedItems;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public List<String[]> getTopRatedFeedback() throws SQLException {
+
+        // completed reviewing
         List<String[]> topRatedFeedback = new ArrayList<>();
-    
+
         String query = """
-            SELECT u.Username, f.Rating, f.Comment
-            FROM Feedback f
-            JOIN Orders o ON f.OrderId = o.OrderId
-            JOIN Users u ON o.UserId = u.UserId
-            ORDER BY f.Rating DESC
-            LIMIT 2
-        """;
-    
-        try (var stmt = connection.prepareStatement(query)) {
+                    select u.Username, f.Rating, f.Comment
+                    from Feedback f
+                    join Orders o ON f.OrderId = o.OrderId
+                    join Users u ON o.UserId = u.UserId
+                    order BY f.Rating desc
+                    limit 2
+                """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     String[] row = new String[3];
@@ -243,21 +350,45 @@ public class FeedbackRepo {
                 }
             }
         }
-    
+
         return topRatedFeedback;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public void sendResponseEmail(int feedbackId, String response) {
-        // we will get the email of the user 
+        // we will get the email of the user
+        // completed reviewing
         String emailQuery = """
-            SELECT u.Email
-            FROM Feedback f
-            JOIN Orders o ON f.OrderId = o.OrderId
-            JOIN Users u ON o.UserId = u.UserId
-            WHERE f.FeedbackId = ?
-        """;
+                    select u.Email
+                    from Feedback f
+                    join Orders o ON f.OrderId = o.OrderId
+                    join Users u ON o.UserId = u.UserId
+                    where f.FeedbackId = ?
+                """;
         String userEmail = null;
-        try (var stmt = connection.prepareStatement(emailQuery)) {
+        try (PreparedStatement stmt = connection.prepareStatement(emailQuery)) {
             stmt.setInt(1, feedbackId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -274,20 +405,49 @@ public class FeedbackRepo {
         // Send email
         String subject = "Response to Your Feedback";
         String body = """
-                      Dear User,
-                      Thank you for your feedback. Here is our response:
-                      """ +
-                      response + "\n\n" +
-                      "Best Regards,\n" +
-                      "Banjara Hotels";
-        // Use the email sending utility
+                Dear User,
+                Thank you for your feedback.\n
+                Here is our response:
+                """ +
+                response + "\n\n" +
+                "Best Regards,\n" +
+                "Banjara Hotels";
         System.out.println("Sending email to: " + userEmail);
         SendEmail.mail(userEmail, subject, body);
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public boolean isUserValid(int currentUser) {
-        String query = "SELECT COUNT(*) FROM Users WHERE UserId = ?";
-        try (var stmt = connection.prepareStatement(query)) {
+
+        // completed reviewing
+        // System.out.println("error in checking user function called");
+        String query = "select count(*) from Users where UserId = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, currentUser);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -296,12 +456,33 @@ public class FeedbackRepo {
         } catch (SQLException e) {
             System.err.println("Error checking user validity: " + e.getMessage());
         }
+        // System.out.println("i am here");
         return false;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public boolean isValidFeedbackId(int feedbackId) {
-        String query = "SELECT COUNT(*) FROM Feedback WHERE FeedbackId = ?";
-        try (var stmt = connection.prepareStatement(query)) {
+        // completed reviewing
+        // System.out.println("function called");
+        String query = "select count(*) from Feedback where FeedbackId = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, feedbackId);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -313,10 +494,33 @@ public class FeedbackRepo {
         return false;
     }
 
-    public boolean isValidOrderId(int orderId,int userId) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public boolean isValidOrderId(int orderId, int userId) {
+        // completed reviewing
         // Check if the order ID exists and belongs to the user
-        String query = "SELECT COUNT(*) FROM Orders WHERE OrderId = ? AND UserId = ?";
-        try (var stmt = connection.prepareStatement(query)) {
+        String query = "select count(*) FROM Orders WHERE OrderId = ? AND UserId = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, orderId);
             stmt.setInt(2, userId);
             ResultSet rs = stmt.executeQuery();
@@ -329,9 +533,31 @@ public class FeedbackRepo {
         return false;
     }
 
-    public List<Integer> getAllPendingOrders(){
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public List<Integer> getAllPendingOrders() {
+        // completed reviewing
         List<Integer> pendingOrders = new ArrayList<>();
-        String query = "SELECT OrderId FROM Orders WHERE Status = 'pending'";
+        String query = "select OrderId from Orders where Status = 'pending'";
         try (var stmt = connection.prepareStatement(query)) {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
@@ -343,9 +569,32 @@ public class FeedbackRepo {
         return pendingOrders;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public boolean changeOrderStatus(int orderId) {
-        String updateQuery = "UPDATE Orders SET Status = 'complete' WHERE OrderId = ?";
-        try (var stmt = connection.prepareStatement(updateQuery)) {
+        // completed reviewing
+        
+        String updateQuery = "update Orders set Status = 'complete' where OrderId = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(updateQuery)) {
             stmt.setInt(1, orderId);
             int rowsAffected = stmt.executeUpdate();
             if (rowsAffected > 0) {
@@ -357,6 +606,21 @@ public class FeedbackRepo {
         }
         return false;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public void closeConnection() {
         try {
