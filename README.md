@@ -150,6 +150,8 @@ The `db.properties` file contains the database connection settings:
 db.url=jdbc:mysql://localhost:3306/banjarahotels
 db.user=username
 db.password=password
+company.email=something@example.com
+company.password=123
 ```
 
 ## Future Enhancements
