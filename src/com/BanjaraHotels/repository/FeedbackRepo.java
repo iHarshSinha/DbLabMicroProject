@@ -593,7 +593,7 @@ public class FeedbackRepo {
     public boolean changeOrderStatus(int orderId) {
         // completed reviewing
         
-        String updateQuery = "update Orders set Status = 'complete' where OrderId = ?";
+        String updateQuery = "update Orders set Status = 'complete' where OrderId = ? and status = 'pending'";
         try (PreparedStatement stmt = connection.prepareStatement(updateQuery)) {
             stmt.setInt(1, orderId);
             int rowsAffected = stmt.executeUpdate();

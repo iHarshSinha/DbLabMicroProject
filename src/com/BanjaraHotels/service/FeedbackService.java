@@ -1,6 +1,7 @@
 package com.BanjaraHotels.service;
 
 import com.BanjaraHotels.repository.FeedbackRepo;
+import com.BanjaraHotels.utilities.WhiteSpace;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -107,8 +108,19 @@ public class FeedbackService {
     }
 
     public void showForNewUser() {
+        WhiteSpace.blankLine();
+
+
         showTopRatedItems();
+
+
+        WhiteSpace.blankLine();
+
+
         showTopFeedbacks();
+
+        
+        WhiteSpace.blankLine();
     }
 
     public void showTopRatedItems() {
@@ -126,7 +138,6 @@ public class FeedbackService {
                     System.out.println("Review Count: " + item[2]);
                     System.out.println("-------------------------------");
                 }
-                this.showTopFeedbacks();
             }
         } catch (SQLException e) {
             System.err.println("Error fetching top rated items: " + e.getMessage());
@@ -146,9 +157,9 @@ public class FeedbackService {
                 System.out.println("No feedback found.");
             } else {
                 for (String[] feedback : topRatedFeedback) {
-                    System.out.println("Username " + feedback[0]);
-                    System.out.println("Rating " + feedback[1]);
-                    System.out.println("comment " + feedback[2]);
+                    System.out.println("Username: " + feedback[0]);
+                    System.out.println("Rating: " + feedback[1]);
+                    System.out.println("User's Comment: " + feedback[2]);
                     System.out.println("-------------------------------");
                 }
             }

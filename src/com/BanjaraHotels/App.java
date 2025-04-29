@@ -1,6 +1,7 @@
 package com.BanjaraHotels;
 
 import com.BanjaraHotels.service.FeedbackService;
+import com.BanjaraHotels.utilities.WhiteSpace;
 import java.io.IOException;
 import static java.lang.System.exit;
 import java.sql.SQLException;
@@ -42,12 +43,14 @@ public class App {
             System.out.println("1. add feedback");
             System.out.println("2. view responses");
             System.out.println("3. logout");
-            System.out.print("Enter Command ");
+            WhiteSpace.blankLine();
+            System.out.print("Enter Command: ");
 
             String command = App.scanner.nextLine().trim().toLowerCase();
-
+  
             switch (command) {
                 case "add feedback" -> {
+                    WhiteSpace.blankLine();
                     System.out.print("Enter Order ID: ");
                     int orderId;
                     try {
@@ -91,6 +94,7 @@ public class App {
                 }
 
                 case "view responses" -> {
+                    WhiteSpace.blankLine();
                     feedbackService.showResponsesForUser(currentUser);
                 }
                 default -> System.out.println("Unknown command. Available: add feedback, logout\n");
@@ -114,10 +118,12 @@ public class App {
 
 
     private static void login() {
+        WhiteSpace.blankLine();
         System.out.println("  Welcome to Banjara Hotels Feedback Management System");
         System.out.println("  Enter commands listed below");
         System.out.println("  Type 'exit' to close the application");
         System.out.println("  Type 'view top' to view top rated items");
+        WhiteSpace.blankLine();
         while (currentUser == 0) {
             System.out.print(
                     "Enter your User ID to login (or type 'exit' to quit or type 'view top' to view top rated items): ");
@@ -140,6 +146,7 @@ public class App {
                         currentUser = 0;
                     } else {
                         if (App.feedbackService.isUserValid(currentUser)) {
+                            WhiteSpace.blankLine();
                             System.out.println("User ID " + currentUser + " logged in successfully.");
                             if (currentUser == 1) {
                                 System.out.println("Welcome Shopkeeper");
@@ -206,20 +213,37 @@ public class App {
             System.out.println("2. add response");
             System.out.println("3. change order status");
             System.out.println("4. logout");
-            System.out.print("Enter Command ");
+            WhiteSpace.blankLine();
+            System.out.print("Enter Command: ");
 
             String command = App.scanner.nextLine().trim().toLowerCase();
 
             switch (command) {
                 case "show feedback" -> {
-                    System.out.print("Do you want sorting? (yes/no): ");
+                    WhiteSpace.blankLine();
+                    System.out.print("Do you want sorting? (yes/no): Press Enter for default (no): ");
                     String sortInput = App.scanner.nextLine().trim().toLowerCase();
+                    // if it is other than yes or no, we will go to next iteration
+                    if (!sortInput.equals("yes") && !sortInput.equals("no") && !sortInput.isEmpty()) {
+                        WhiteSpace.blankLine();
+                        System.out.println("Invalid input.");
+                        WhiteSpace.blankLine();
+                        continue;
+                    }
                     boolean sorting = sortInput.equals("yes");
 
                     boolean asc = true;
                     if (sorting) {
-                        System.out.print("Ascending or descending? (asc/desc): ");
+                        System.out.print("Ascending or descending? (asc/desc): Press Enter for default (asc): ");
+                        // if it is other than asc or desc, we will go to next iteration
+
                         String ascInput = App.scanner.nextLine().trim().toLowerCase();
+                        if (!ascInput.equals("asc") && !ascInput.equals("desc") && !ascInput.isEmpty()) {
+                            WhiteSpace.blankLine();
+                            System.out.println("Invalid input.");
+                            WhiteSpace.blankLine();
+                            continue;
+                        }
                         asc = ascInput.equals("asc");
                     }
 
@@ -229,15 +253,26 @@ public class App {
                     if (!minRatingInput.isEmpty()) {
                         try {
                             minRating = Integer.parseInt(minRatingInput);
+                            // rating should be between 0 and 5. if it is not the case then we will go to the next iteration
+                            if (minRating < 0 || minRating > 5) {
+                                WhiteSpace.blankLine();
+                                System.out.println("Invalid rating. Rating should be between 0 and 5.");
+                                WhiteSpace.blankLine();
+                                continue;
+                            }
+
                         } catch (NumberFormatException e) {
-                            System.out.println("Invalid rating input. Defaulting to 0.");
-                            minRating = 0;
+                            WhiteSpace.blankLine();
+                            System.out.println("Invalid rating input. It must be a number");
+                            WhiteSpace.blankLine();
+                            continue;
                         }
                     }
 
                     feedbackService.showFeedback(sorting, asc, minRating);
                 }
                 case "add response" -> {
+                    WhiteSpace.blankLine();
                     System.out.print("Enter Feedback ID: ");
                     int feedbackId;
                     try {
@@ -252,7 +287,7 @@ public class App {
                         break;
                     }
 
-                    System.out.print("Enter Response: ");
+                    System.out.print("Enter Response (Note: It cannot be empty): ");
                     String responseText = App.scanner.nextLine().trim();
 
                     if (responseText.isEmpty()) {
@@ -264,6 +299,7 @@ public class App {
                 }
 
                 case "change order status" -> {
+                    WhiteSpace.blankLine();
                     boolean b = feedbackService.showAllPendingOrders();
                     if (!b) {
                         break;
@@ -281,6 +317,7 @@ public class App {
                 }
                 case "logout" -> {
                     currentUser = 0;
+                    WhiteSpace.blankLine();
                     System.out.println("Logged out successfully.\n");
                     return;
                 }
