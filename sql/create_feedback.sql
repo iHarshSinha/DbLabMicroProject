@@ -16,7 +16,7 @@ CREATE TABLE Orders (
 -- Feedback Table
 CREATE TABLE Feedback (
     FeedbackId INT PRIMARY KEY AUTO_INCREMENT,
-    OrderId INT NOT NULL,
+    OrderId INT NOT NULL UNIQUE,
     Rating INT CHECK (Rating >= 1 AND Rating <= 5),
     Comment TEXT
 );
@@ -24,7 +24,7 @@ CREATE TABLE Feedback (
 -- Response Table
 CREATE TABLE Response (
     ResponseId INT PRIMARY KEY AUTO_INCREMENT,
-    FeedbackId INT NOT NULL,
+    FeedbackId INT NOT NULL UNIQUE,
     ResponseText TEXT NOT NULL
 );
 

@@ -40,6 +40,7 @@ public class FeedbackService {
 
 
     public void showFeedback(boolean sorting, boolean asc, int filterRating) {
+        WhiteSpace.blankLine();
         List<String[]> feedbackList;
         try {
             feedbackList = feedbackRepo.getFeedbackWithUserAndOrder(sorting, asc, filterRating);
@@ -121,13 +122,14 @@ public class FeedbackService {
 
 
     public void addFeedback(int orderId, int rating, String comment)  {
+        WhiteSpace.blankLine();
 
-        try {
-            feedbackRepo.addFeedback(orderId, rating, comment);
-        } catch (SQLException e) {
-            System.err.println("Error adding feedback: " + e.getMessage());
+        boolean b=feedbackRepo.addFeedback(orderId, rating, comment); 
+        if (!b) {
+            System.out.println("Failed to add feedback.");
+            WhiteSpace.blankLine();
             return;
-        } 
+        }
         try {
             feedbackRepo.updateItemRatingsAfterFeedback(orderId, rating);
         } catch (SQLException e) {
@@ -159,17 +161,15 @@ public class FeedbackService {
 
 
     public void addResponse(int feedbackId, String response) {
+        WhiteSpace.blankLine();
         boolean b;
-        try {
-            b = feedbackRepo.addResponse(feedbackId, response);
-            if (b) {
-                System.out.println("Response added successfully.");
-                feedbackRepo.sendResponseEmail(feedbackId, response);
-            } else {
-                System.out.println("Failed to add response.");
-            }
-        } catch (SQLException e) {
-            System.err.println("Error adding response: " + e.getMessage());
+        b = feedbackRepo.addResponse(feedbackId, response);
+        if (b) {
+            System.out.println("Response added successfully.");
+            feedbackRepo.sendResponseEmail(feedbackId, response);
+        } else {
+            System.out.println("Failed to add response.");
+            WhiteSpace.blankLine();
         }
 
     }
@@ -197,6 +197,7 @@ public class FeedbackService {
 
 
     public void showResponsesForUser(int userId) {
+        WhiteSpace.blankLine();
         try {
             List<String[]> responses = feedbackRepo.getResponsesForUser(userId);
 
@@ -445,6 +446,7 @@ public class FeedbackService {
 
 
     public boolean showAllPendingOrders() {
+        WhiteSpace.blankLine();
         List<Integer> pendingOrders = feedbackRepo.getAllPendingOrders();
         if (pendingOrders.isEmpty()) {
             System.out.println("No pending orders found.");
@@ -479,6 +481,7 @@ public class FeedbackService {
 
 
     public void changeOrderStatus(int orderId) {
+        WhiteSpace.blankLine();
         boolean success = feedbackRepo.changeOrderStatus(orderId);
         if (success) {
             System.out.println("Order status updated successfully.");
@@ -486,7 +489,6 @@ public class FeedbackService {
             System.out.println("Failed to update order status.");
         }
     }
-
 
 
 

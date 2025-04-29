@@ -76,7 +76,7 @@ public class FeedbackRepo {
 
     public boolean canAddFeedback(int orderId) throws SQLException {
         // completed reviewing
-        System.out.println("function called for checking feedback");
+        // System.out.println("function called for checking feedback");
         String query = """
                     select count(*) from Orders
                     where OrderId = ? AND Status = 'complete'
@@ -107,7 +107,7 @@ public class FeedbackRepo {
 
 
 
-    public void addFeedback(int orderId, int rating, String comment) throws SQLException {
+    public boolean addFeedback(int orderId, int rating, String comment) {
         // completed reviewing
         String insertQuery = """
                     insert into Feedback (OrderId, Rating, Comment)
@@ -125,6 +125,20 @@ public class FeedbackRepo {
             }
 
             stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            
+            if ("23000".equals(e.getSQLState()) && e.getErrorCode() == 1062) {
+                System.out.println("You have already added feedback for this order.");
+            } else {
+                System.err.println("Error adding feedback: " + e.getMessage());
+            }
+            try {
+                connection.rollback();
+            } catch (SQLException e1) {
+                System.err.println("Error rolling back transaction: " + e1.getMessage());
+            }
+            return false;
         }
     }
 
@@ -146,6 +160,7 @@ public class FeedbackRepo {
     public void updateItemRatingsAfterFeedback(int orderId, int newRating) throws SQLException {
         // completed reviewing
         String getItemsQuery = "select ItemId from OrderItems where OrderId = ?";
+        System.out.println("function called");
 
         try (PreparedStatement getItemsStmt = connection.prepareStatement(getItemsQuery)) {
             getItemsStmt.setInt(1, orderId);
@@ -153,6 +168,7 @@ public class FeedbackRepo {
 
             while (rs.next()) {
                 int itemId = rs.getInt("ItemId");
+                // System.out.println(String.format("item id is %d", itemId));
 
                 String selectItem = "select ReviewCount, AverageRating FROM Items where ItemId = ?";
                 try (PreparedStatement selectStmt = connection.prepareStatement(selectItem)) {
@@ -195,7 +211,7 @@ public class FeedbackRepo {
 
 
 
-    public boolean addResponse(int feedbackId, String responseText) throws SQLException {
+    public boolean addResponse(int feedbackId, String responseText) {
         // completed reviewing
         String insertQuery = """
                     insert into Response (FeedbackId, ResponseText)
@@ -207,6 +223,21 @@ public class FeedbackRepo {
             stmt.executeUpdate();
             connection.commit(); // Commit the transaction
             return true;
+        } catch (SQLException e) {
+            
+            if ("23000".equals(e.getSQLState()) && e.getErrorCode() == 1062) {
+                System.out.println("You have added a response to this feedback before.");
+                
+            }
+            else{
+                System.err.println("Error adding response: " + e.getMessage());
+            }
+            try {
+                connection.rollback();
+            } catch (SQLException e1) {
+                System.err.println("Error rolling back transaction: " + e1.getMessage());
+            }
+            return false;
         }
     }
 
