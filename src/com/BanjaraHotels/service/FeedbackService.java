@@ -9,9 +9,35 @@ import java.util.List;
 public class FeedbackService {
     private final FeedbackRepo feedbackRepo;
 
+
+
+
+
+
+
+
+
+
+
     public FeedbackService() throws SQLException, IOException {
         this.feedbackRepo = new FeedbackRepo();
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public void showFeedback(boolean sorting, boolean asc, int filterRating) {
         List<String[]> feedbackList;
@@ -37,6 +63,29 @@ public class FeedbackService {
 
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public boolean canAddFeedback(int orderId) {
         try {
             return feedbackRepo.canAddFeedback(orderId);
@@ -48,6 +97,28 @@ public class FeedbackService {
             return false;
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public void addFeedback(int orderId, int rating, String comment)  {
 
@@ -67,6 +138,26 @@ public class FeedbackService {
 
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public void addResponse(int feedbackId, String response) {
         boolean b;
         try {
@@ -82,6 +173,28 @@ public class FeedbackService {
         }
 
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public void showResponsesForUser(int userId) {
         try {
@@ -107,6 +220,28 @@ public class FeedbackService {
         }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public void showForNewUser() {
         WhiteSpace.blankLine();
 
@@ -119,9 +254,34 @@ public class FeedbackService {
 
         showTopFeedbacks();
 
-        
+
         WhiteSpace.blankLine();
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public void showTopRatedItems() {
         try {
@@ -143,6 +303,33 @@ public class FeedbackService {
             System.err.println("Error fetching top rated items: " + e.getMessage());
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public void showTopFeedbacks() {
         try {
@@ -169,18 +356,93 @@ public class FeedbackService {
         }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public boolean isUserValid(int currentUser) {
         return feedbackRepo.isUserValid(currentUser);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public boolean isValidFeedbackId(int feedbackId) {
 
         return feedbackRepo.isValidFeedbackId(feedbackId);
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public boolean isValidOrderId(int orderId, int userId) {
         return feedbackRepo.isValidOrderId(orderId, userId);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public boolean showAllPendingOrders() {
         List<Integer> pendingOrders = feedbackRepo.getAllPendingOrders();
@@ -196,6 +458,26 @@ public class FeedbackService {
         }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public void changeOrderStatus(int orderId) {
         boolean success = feedbackRepo.changeOrderStatus(orderId);
         if (success) {
@@ -205,6 +487,21 @@ public class FeedbackService {
         }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
     public void closeConnection() {
         feedbackRepo.closeConnection();
     }
